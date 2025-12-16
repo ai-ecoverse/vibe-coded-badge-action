@@ -42,6 +42,78 @@ RENOVATE_LINES=0
 SEMANTIC_LINES=0
 JULES_LINES=0
 
+detect_ai_actor() {
+  local actor_name="$1"
+  local actor_email="$2"
+
+  if echo "$actor_name" | grep -i 'terragon' >/dev/null || echo "$actor_email" | grep -i 'terragon' >/dev/null; then
+    TERRAGON_LINES=$((TERRAGON_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iE 'claude|anthropic' >/dev/null || echo "$actor_email" | grep -iE 'claude|anthropic' >/dev/null; then
+    CLAUDE_LINES=$((CLAUDE_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'cursor' >/dev/null; then
+    CURSOR_LINES=$((CURSOR_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'windsurf' >/dev/null; then
+    WINDSURF_LINES=$((WINDSURF_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'zed' >/dev/null; then
+    ZED_LINES=$((ZED_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'openai' >/dev/null; then
+    OPENAI_LINES=$((OPENAI_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'opencode' >/dev/null; then
+    OPENCODE_LINES=$((OPENCODE_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'qwen code' >/dev/null || echo "$actor_email" | grep -E 'noreply@alibaba\.com' >/dev/null; then
+    QWEN_LINES=$((QWEN_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'gemini' >/dev/null || echo "$actor_email" | grep -E 'noreply@google\.com' >/dev/null; then
+    GEMINI_LINES=$((GEMINI_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'google-labs-jules\[bot\]' >/dev/null; then
+    JULES_LINES=$((JULES_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iw 'amp' >/dev/null || echo "$actor_email" | grep -E 'noreply@sourcegraph\.com' >/dev/null; then
+    AMP_LINES=$((AMP_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iw 'droid' >/dev/null || echo "$actor_email" | grep -E 'droid@factory\.ai' >/dev/null; then
+    DROID_LINES=$((DROID_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i 'copilot' >/dev/null || echo "$actor_email" | grep -E 'copilot@github\.com' >/dev/null; then
+    COPILOT_LINES=$((COPILOT_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iE '\(aider\)|^aider' >/dev/null || echo "$actor_email" | grep -E 'aider@aider\.chat' >/dev/null; then
+    AIDER_LINES=$((AIDER_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iw 'cline' >/dev/null || echo "$actor_email" | grep -iE 'cline@|noreply@cline\.bot' >/dev/null; then
+    CLINE_LINES=$((CLINE_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iw 'crush' >/dev/null || echo "$actor_email" | grep -E 'crush@charm\.land' >/dev/null; then
+    CRUSH_LINES=$((CRUSH_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iw 'kimi' >/dev/null || echo "$actor_email" | grep -E 'kimi@moonshot\.' >/dev/null; then
+    KIMI_LINES=$((KIMI_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -iw 'goose' >/dev/null || echo "$actor_email" | grep -E 'goose@(example\.com|opensource\.block\.xyz)' >/dev/null; then
+    GOOSE_LINES=$((GOOSE_LINES + 1))
+    return 0
+  elif echo "$actor_name" | grep -i '\[bot\]' >/dev/null || echo "$actor_name" | grep -iE 'renovate|semantic-release' >/dev/null; then
+    if echo "$actor_name" | grep -i 'renovate' >/dev/null; then
+      RENOVATE_LINES=$((RENOVATE_LINES + 1))
+    elif echo "$actor_name" | grep -iE 'semantic-release|semantic' >/dev/null; then
+      SEMANTIC_LINES=$((SEMANTIC_LINES + 1))
+    else
+      BOT_LINES=$((BOT_LINES + 1))
+    fi
+    return 0
+  fi
+
+  return 1
+}
+
 # Find all relevant source files
 SOURCE_FILES=$(find . -type f \
   \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \
@@ -83,97 +155,33 @@ for FILE in $SOURCE_FILES; do
         # Get author info for this commit
         AUTHOR=$(git show -s --format='%an' "$COMMIT_HASH" 2>/dev/null || echo "")
         AUTHOR_EMAIL=$(git show -s --format='%ae' "$COMMIT_HASH" 2>/dev/null || echo "")
+        COMMIT_BODY=$(git show -s --format='%B' "$COMMIT_HASH" 2>/dev/null || echo "")
         
         # Count the line
         TOTAL_LINES=$((TOTAL_LINES + 1))
         
         # Determine if it's AI-authored
         IS_AI=false
-        
-        # Check for Terragon (via Co-authored-by in commit message)
-        if git show --format=%B "$COMMIT_HASH" 2>/dev/null | grep -iE 'Co-authored-by:.*terragon' >/dev/null; then
-          TERRAGON_LINES=$((TERRAGON_LINES + 1))
-          IS_AI=true
-        # Check for Claude/Anthropic
-        elif echo "$AUTHOR" | grep -iE 'claude|anthropic' >/dev/null || echo "$AUTHOR_EMAIL" | grep -iE 'claude|anthropic' >/dev/null; then
-          CLAUDE_LINES=$((CLAUDE_LINES + 1))
-          IS_AI=true
-        # Check for Cursor
-        elif echo "$AUTHOR" | grep -i 'cursor' >/dev/null; then
-          CURSOR_LINES=$((CURSOR_LINES + 1))
-          IS_AI=true
-        # Check for Windsurf
-        elif echo "$AUTHOR" | grep -i 'windsurf' >/dev/null; then
-          WINDSURF_LINES=$((WINDSURF_LINES + 1))
-          IS_AI=true
-        # Check for Zed
-        elif echo "$AUTHOR" | grep -i 'zed' >/dev/null; then
-          ZED_LINES=$((ZED_LINES + 1))
-          IS_AI=true
-        # Check for OpenAI
-        elif echo "$AUTHOR" | grep -i 'openai' >/dev/null; then
-          OPENAI_LINES=$((OPENAI_LINES + 1))
-          IS_AI=true
-        # Check for OpenCode
-        elif echo "$AUTHOR" | grep -i 'opencode' >/dev/null; then
-          OPENCODE_LINES=$((OPENCODE_LINES + 1))
-          IS_AI=true
-        # Check for Qwen Code
-        elif echo "$AUTHOR" | grep -i 'qwen code' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'noreply@alibaba\.com' >/dev/null; then
-          QWEN_LINES=$((QWEN_LINES + 1))
-          IS_AI=true
-        # Check for Gemini
-        elif echo "$AUTHOR" | grep -i 'gemini' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'noreply@google\.com' >/dev/null; then
-          GEMINI_LINES=$((GEMINI_LINES + 1))
-          IS_AI=true
-        # Check for Jules
-        elif echo "$AUTHOR" | grep -i 'google-labs-jules\[bot\]' >/dev/null; then
-          JULES_LINES=$((JULES_LINES + 1))
-          IS_AI=true
-        # Check for Amp (Sourcegraph)
-        elif echo "$AUTHOR" | grep -iw 'amp' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'noreply@sourcegraph\.com' >/dev/null; then
-          AMP_LINES=$((AMP_LINES + 1))
-          IS_AI=true
-        # Check for Droid (Factory AI)
-        elif echo "$AUTHOR" | grep -iw 'droid' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'droid@factory\.ai' >/dev/null; then
-          DROID_LINES=$((DROID_LINES + 1))
-          IS_AI=true
-        # Check for GitHub Copilot
-        elif echo "$AUTHOR" | grep -i 'copilot' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'copilot@github\.com' >/dev/null; then
-          COPILOT_LINES=$((COPILOT_LINES + 1))
-          IS_AI=true
-        # Check for Aider (via author name or co-authored-by)
-        elif echo "$AUTHOR" | grep -iE '\(aider\)|^aider' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'aider@aider\.chat' >/dev/null || git show --format=%B "$COMMIT_HASH" 2>/dev/null | grep -iE 'Co-authored-by:.*aider' >/dev/null; then
-          AIDER_LINES=$((AIDER_LINES + 1))
-          IS_AI=true
-        # Check for Cline
-        elif echo "$AUTHOR" | grep -iw 'cline' >/dev/null || echo "$AUTHOR_EMAIL" | grep -iE 'cline@|noreply@cline\.bot' >/dev/null; then
-          CLINE_LINES=$((CLINE_LINES + 1))
-          IS_AI=true
-        # Check for Crush (Charm)
-        elif echo "$AUTHOR" | grep -iw 'crush' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'crush@charm\.land' >/dev/null; then
-          CRUSH_LINES=$((CRUSH_LINES + 1))
-          IS_AI=true
-        # Check for Kimi (Moonshot AI)
-        elif echo "$AUTHOR" | grep -iw 'kimi' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'kimi@moonshot\.' >/dev/null; then
-          KIMI_LINES=$((KIMI_LINES + 1))
-          IS_AI=true
-        # Check for Goose (Block)
-        elif echo "$AUTHOR" | grep -iw 'goose' >/dev/null || echo "$AUTHOR_EMAIL" | grep -E 'goose@(example\.com|opensource\.block\.xyz)' >/dev/null; then
-          GOOSE_LINES=$((GOOSE_LINES + 1))
-          IS_AI=true
-        # Check for bots
-        elif echo "$AUTHOR" | grep -i '\[bot\]' >/dev/null || echo "$AUTHOR" | grep -iE 'renovate|semantic-release' >/dev/null; then
-          if echo "$AUTHOR" | grep -i 'renovate' >/dev/null; then
-            RENOVATE_LINES=$((RENOVATE_LINES + 1))
-          elif echo "$AUTHOR" | grep -iE 'semantic-release|semantic' >/dev/null; then
-            SEMANTIC_LINES=$((SEMANTIC_LINES + 1))
-          else
-            BOT_LINES=$((BOT_LINES + 1))
-          fi
+
+        if detect_ai_actor "$AUTHOR" "$AUTHOR_EMAIL"; then
           IS_AI=true
         fi
-        
+
+        if ! $IS_AI && [ -n "$COMMIT_BODY" ]; then
+          co_author_lines=$(printf '%s\n' "$COMMIT_BODY" | grep -i '^[[:space:]]*Co-authored-by:' || true)
+          if [ -n "$co_author_lines" ]; then
+            while IFS= read -r co_line; do
+              co_line=$(printf '%s' "$co_line" | sed -E 's/^[[:space:]]+//; s/^[Cc]o-[Aa]uthored-[Bb]y:[[:space:]]*//; s/[[:space:]]+$//')
+              co_name=$(printf '%s' "$co_line" | sed -E 's/<.*//; s/[[:space:]]+$//')
+              co_email=$(printf '%s' "$co_line" | sed -nE 's/.*<([^>]+)>.*/\1/p')
+              if detect_ai_actor "$co_name" "$co_email"; then
+                IS_AI=true
+                break
+              fi
+            done <<< "$co_author_lines"
+          fi
+        fi
+
         if $IS_AI; then
           AI_LINES=$((AI_LINES + 1))
         fi
