@@ -1,6 +1,6 @@
 # Vibe Coded Badge Action
 
-[![88% Vibe_Coded](https://img.shields.io/badge/88%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=claude&logoColor=white)](https://github.com/trieloff/vibe-coded-badge-action)
+[![88% Vibe_Coded](https://img.shields.io/badge/88%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=claude&logoColor=white)](https://github.com/ai-ecoverse/vibe-coded-badge-action)
 
 A GitHub Action that automatically analyzes your repository's git history to determine what percentage of commits were made by AI tools, and updates a badge in your README accordingly.
 
@@ -8,14 +8,14 @@ A GitHub Action that automatically analyzes your repository's git history to det
 
 ## Related Projects
 
-Part of the **[AI Ecoverse](https://github.com/trieloff/ai-ecoverse)** - a comprehensive ecosystem of tools for AI-assisted development:
+Part of the **[AI Ecoverse](https://github.com/ai-ecoverse/.github)** - a comprehensive ecosystem of tools for AI-assisted development:
 
-- **[yolo](https://github.com/trieloff/yolo)** - AI CLI launcher with worktree isolation
-- **[ai-aligned-git](https://github.com/trieloff/ai-aligned-git)** - Git wrapper for safe AI commit practices
-- **[ai-aligned-gh](https://github.com/trieloff/ai-aligned-gh)** - GitHub CLI wrapper for proper AI attribution
-- **[gh-workflow-peek](https://github.com/trieloff/gh-workflow-peek)** - Smarter GitHub Actions log filtering
-- **[upskill](https://github.com/trieloff/upskill)** - Install Claude/Agent skills from other repositories
-- **[as-a-bot](https://github.com/trieloff/as-a-bot)** - GitHub App token broker for proper AI attribution
+- **[yolo](https://github.com/ai-ecoverse/yolo)** - AI CLI launcher with worktree isolation
+- **[ai-aligned-git](https://github.com/ai-ecoverse/ai-aligned-git)** - Git wrapper for safe AI commit practices
+- **[ai-aligned-gh](https://github.com/ai-ecoverse/ai-aligned-gh)** - GitHub CLI wrapper for proper AI attribution
+- **[gh-workflow-peek](https://github.com/ai-ecoverse/gh-workflow-peek)** - Smarter GitHub Actions log filtering
+- **[upskill](https://github.com/ai-ecoverse/gh-upskill)** - Install Claude/Agent skills from other repositories
+- **[as-a-bot](https://github.com/ai-ecoverse/as-a-bot)** - GitHub App token broker for proper AI attribution
 
 ## Features
 
@@ -49,13 +49,13 @@ jobs:
       with:
         fetch-depth: 0
         
-    - uses: trieloff/vibe-coded-badge-action@main
+    - uses: ai-ecoverse/vibe-coded-badge-action@main
 ```
 
 ### Advanced Usage
 
 ```yaml
-    - uses: trieloff/vibe-coded-badge-action@main
+    - uses: ai-ecoverse/vibe-coded-badge-action@main
       with:
         readme-path: 'docs/README.md'
         badge-style: 'flat-square'
@@ -144,7 +144,7 @@ The badge automatically selects the appropriate logo based on which AI tool has 
 Enable debug mode to see detailed analysis:
 
 ```yaml
-    - uses: trieloff/vibe-coded-badge-action@main
+    - uses: ai-ecoverse/vibe-coded-badge-action@main
       with:
         debug: 'true'
 ```
