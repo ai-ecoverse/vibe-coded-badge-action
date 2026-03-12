@@ -255,7 +255,7 @@ for FILE in $ALL_SOURCE_FILES; do
   [ -z "$CURRENT_HASH" ] && continue
   
   # Check if file is in cache with matching hash
-  if [ -n "${FILE_CACHE[$FILE]:-}" ]; then
+  if [[ -v "FILE_CACHE[$FILE]" ]]; then
     IFS='|' read -r cached_hash cached_total cached_ai cached_breakdown <<< "${FILE_CACHE[$FILE]}"
     
     if [ "$cached_hash" = "$CURRENT_HASH" ]; then
