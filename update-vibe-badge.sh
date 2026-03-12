@@ -44,8 +44,9 @@ declare -A AI_LOGOS=(
 )
 
 # Load existing cache if available
-declare -A FILE_CACHE
+declare -A FILE_CACHE=()
 load_cache() {
+  local count=0
   if [ -f "$CACHE_FILE" ]; then
     echo "Loading cache from $CACHE_FILE..."
     while IFS= read -r line; do
@@ -56,9 +57,10 @@ load_cache() {
         local ai="${BASH_REMATCH[4]}"
         local breakdown="${BASH_REMATCH[5]}"
         FILE_CACHE["$file"]="$hash|$total|$ai|$breakdown"
+        count=$((count + 1))
       fi
     done < "$CACHE_FILE"
-    echo "Loaded ${#FILE_CACHE[@]} cached file entries"
+    echo "Loaded $count cached file entries"
   else
     echo "No cache file found, starting fresh analysis"
   fi
@@ -69,15 +71,17 @@ save_cache() {
   echo "Saving cache to $CACHE_FILE..."
   echo "{" > "$CACHE_FILE"
   local first=true
-  for file in "${!FILE_CACHE[@]}"; do
-    IFS='|' read -r hash total ai breakdown <<< "${FILE_CACHE[$file]}"
+  local key
+  for key in "${!FILE_CACHE[@]+"${!FILE_CACHE[@]}"}"; do
+    [ -z "$key" ] && continue
+    IFS='|' read -r hash total ai breakdown <<< "${FILE_CACHE[$key]}"
     if [ "$first" = true ]; then
       first=false
     else
       echo "," >> "$CACHE_FILE"
     fi
     printf '  "%s": {"hash": "%s", "total": %d, "ai": %d, "breakdown": {%s}}' \
-      "$file" "$hash" "$total" "$ai" "$breakdown" >> "$CACHE_FILE"
+      "$key" "$hash" "$total" "$ai" "$breakdown" >> "$CACHE_FILE"
   done
   echo "" >> "$CACHE_FILE"
   echo "}" >> "$CACHE_FILE"
