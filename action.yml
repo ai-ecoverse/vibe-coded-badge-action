@@ -39,10 +39,22 @@ outputs:
     description: 'Whether the badge was changed (true/false)'
   dominant-ai:
     description: 'The AI tool with the most commits'
+  cache-hits:
+    description: 'Number of files served from cache'
+  cache-misses:
+    description: 'Number of files that required analysis'
 
 runs:
   using: 'composite'
   steps:
+    - name: Restore vibe-badge cache
+      uses: actions/cache@v4
+      with:
+        path: .vibe-cache.json
+        key: vibe-badge-${{ github.run_id }}
+        restore-keys: |
+          vibe-badge-
+
     - name: Update Vibe Coded Badge
       run: ${{ github.action_path }}/update-vibe-badge.sh
       shell: bash
@@ -54,6 +66,7 @@ runs:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
         DEBUG: ${{ inputs.debug }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        CACHE_FILE: .vibe-cache.json
 
 branding:
   icon: 'trending-up'
