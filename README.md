@@ -1,6 +1,6 @@
 # Vibe Coded Badge Action
 
-[![89% Vibe_Coded](https://img.shields.io/badge/89%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=claude&logoColor=white)](https://github.com/ai-ecoverse/vibe-coded-badge-action)
+[![95% Vibe_Coded](https://img.shields.io/badge/95%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=claude&logoColor=white)](https://github.com/ai-ecoverse/vibe-coded-badge-action)
 
 A GitHub Action that automatically analyzes your repository's git history to determine what percentage of commits were made by AI tools, and updates a badge in your README accordingly.
 
