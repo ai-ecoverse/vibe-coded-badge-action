@@ -76,13 +76,12 @@ save_cache() {
     if [ "$first" = true ]; then
       first=false
     else
-      echo "," >> "$CACHE_FILE"
+      printf ",\n" >> "$CACHE_FILE"
     fi
     printf '  "%s": {"hash": "%s", "total": %d, "ai": %d, "breakdown": {%s}}' \
       "$file" "$hash" "$total" "$ai" "$breakdown" >> "$CACHE_FILE"
   done
-  echo "" >> "$CACHE_FILE"
-  echo "}" >> "$CACHE_FILE"
+  printf "\n}\n" >> "$CACHE_FILE"
 }
 
 # Get git blob hash for a file (content-based hash)
