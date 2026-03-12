@@ -50,7 +50,8 @@ load_cache() {
   if [ -f "$CACHE_FILE" ]; then
     echo "Loading cache from $CACHE_FILE..."
     while IFS= read -r line; do
-      if [[ "$line" =~ \"([^\"]+)\":[[:space:]]*\{\"hash\":\"([^\"]+)\",\"total\":([0-9]+),\"ai\":([0-9]+),\"breakdown\":\{([^\}]*)\}\} ]]; then
+      # Match JSON lines like: "file.txt": {"hash": "abc", "total": 100, "ai": 50, "breakdown": {"Claude":30}}
+      if [[ "$line" =~ \"([^\"]+)\":\ *\{\"hash\":\ *\"([^\"]+)\",\ *\"total\":\ *([0-9]+),\ *\"ai\":\ *([0-9]+),\ *\"breakdown\":\ *\{([^}]*)\} ]]; then
         local file="${BASH_REMATCH[1]}"
         local hash="${BASH_REMATCH[2]}"
         local total="${BASH_REMATCH[3]}"
