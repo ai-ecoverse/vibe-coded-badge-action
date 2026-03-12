@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 # Environment variables with defaults
 README_PATH="${README_PATH:-README.md}"
@@ -71,17 +71,15 @@ save_cache() {
   echo "Saving cache to $CACHE_FILE..."
   echo "{" > "$CACHE_FILE"
   local first=true
-  local key
-  for key in "${!FILE_CACHE[@]+"${!FILE_CACHE[@]}"}"; do
-    [ -z "$key" ] && continue
-    IFS='|' read -r hash total ai breakdown <<< "${FILE_CACHE[$key]}"
+  for file in "${!FILE_CACHE[@]}"; do
+    IFS='|' read -r hash total ai breakdown <<< "${FILE_CACHE[$file]}"
     if [ "$first" = true ]; then
       first=false
     else
       echo "," >> "$CACHE_FILE"
     fi
     printf '  "%s": {"hash": "%s", "total": %d, "ai": %d, "breakdown": {%s}}' \
-      "$key" "$hash" "$total" "$ai" "$breakdown" >> "$CACHE_FILE"
+      "$file" "$hash" "$total" "$ai" "$breakdown" >> "$CACHE_FILE"
   done
   echo "" >> "$CACHE_FILE"
   echo "}" >> "$CACHE_FILE"
