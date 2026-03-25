@@ -143,6 +143,9 @@ detect_ai_actor() {
   return 1
 }
 
+# Global commit AI type cache (persists across files)
+declare -A COMMIT_AI_CACHE=()
+
 # Analyze a single file and return results
 analyze_file() {
   local file="$1"
@@ -150,45 +153,74 @@ analyze_file() {
   local file_ai=0
   declare -A file_breakdown
 
-  while IFS= read -r LINE; do
-    if [[ "$LINE" =~ ^([a-f0-9]{40})[[:space:]] ]]; then
-      COMMIT_HASH="${BASH_REMATCH[1]}"
-      
-      # Skip null commit
-      [ "$COMMIT_HASH" = "0000000000000000000000000000000000000000" ] && continue
-      
-      # Skip merge commits
-      PARENT_COUNT=$(git rev-list --parents -n 1 "$COMMIT_HASH" 2>/dev/null | wc -w)
-      [ "$PARENT_COUNT" -gt 2 ] && continue
-      
-      AUTHOR=$(git show -s --format='%an' "$COMMIT_HASH" 2>/dev/null || echo "")
-      AUTHOR_EMAIL=$(git show -s --format='%ae' "$COMMIT_HASH" 2>/dev/null || echo "")
-      COMMIT_BODY=$(git show -s --format='%B' "$COMMIT_HASH" 2>/dev/null || echo "")
-      
-      file_total=$((file_total + 1))
-      
-      AI_TYPE=""
-      AI_TYPE=$(detect_ai_actor "$AUTHOR" "$AUTHOR_EMAIL") || true
+  local current_hash=""
+  local current_author=""
+  local current_email=""
 
-      if [ -z "$AI_TYPE" ] && [ -n "$COMMIT_BODY" ]; then
-        co_author_lines=$(printf '%s\n' "$COMMIT_BODY" | grep -i '^[[:space:]]*Co-authored-by:' || true)
-        if [ -n "$co_author_lines" ]; then
-          while IFS= read -r co_line; do
-            co_line=$(printf '%s' "$co_line" | sed -E 's/^[[:space:]]+//; s/^[Cc]o-[Aa]uthored-[Bb]y:[[:space:]]*//; s/[[:space:]]+$//')
-            co_name=$(printf '%s' "$co_line" | sed -E 's/<.*//; s/[[:space:]]+$//')
-            co_email=$(printf '%s' "$co_line" | sed -nE 's/.*<([^>]+)>.*/\1/p')
-            AI_TYPE=$(detect_ai_actor "$co_name" "$co_email") || true
-            [ -n "$AI_TYPE" ] && break
-          done <<< "$co_author_lines"
+  while IFS= read -r LINE; do
+    # Blame entry header: 40-char hash followed by line numbers
+    if [[ "$LINE" =~ ^([a-f0-9]{40})[[:space:]] ]]; then
+      current_hash="${BASH_REMATCH[1]}"
+      current_author=""
+      current_email=""
+    elif [[ "$LINE" =~ ^author\ (.*) ]]; then
+      current_author="${BASH_REMATCH[1]}"
+    elif [[ "$LINE" =~ ^author-mail\ \<(.*)\> ]]; then
+      current_email="${BASH_REMATCH[1]}"
+    elif [[ "$LINE" == $'\t'* ]]; then
+      # Content line marks end of a blame entry — now process it
+
+      # Skip null commit
+      [ "$current_hash" = "0000000000000000000000000000000000000000" ] && continue
+
+      file_total=$((file_total + 1))
+
+      # Check commit cache first (same commit seen in earlier lines/files)
+      if [[ -v "COMMIT_AI_CACHE[$current_hash]" ]]; then
+        local cached_type="${COMMIT_AI_CACHE[$current_hash]}"
+        if [ "$cached_type" != "NONE" ]; then
+          file_ai=$((file_ai + 1))
+          file_breakdown["$cached_type"]=$((${file_breakdown["$cached_type"]:-0} + 1))
+        fi
+        continue
+      fi
+
+      # Skip merge commits (only check once per commit)
+      PARENT_COUNT=$(git rev-list --parents -n 1 "$current_hash" 2>/dev/null | wc -w)
+      if [ "$PARENT_COUNT" -gt 2 ]; then
+        COMMIT_AI_CACHE["$current_hash"]="NONE"
+        continue
+      fi
+
+      AI_TYPE=""
+      AI_TYPE=$(detect_ai_actor "$current_author" "$current_email") || true
+
+      if [ -z "$AI_TYPE" ]; then
+        COMMIT_BODY=$(git show -s --format='%B' "$current_hash" 2>/dev/null || echo "")
+        if [ -n "$COMMIT_BODY" ]; then
+          co_author_lines=$(printf '%s\n' "$COMMIT_BODY" | grep -i '^[[:space:]]*Co-authored-by:' || true)
+          if [ -n "$co_author_lines" ]; then
+            while IFS= read -r co_line; do
+              co_line=$(printf '%s' "$co_line" | sed -E 's/^[[:space:]]+//; s/^[Cc]o-[Aa]uthored-[Bb]y:[[:space:]]*//; s/[[:space:]]+$//')
+              co_name=$(printf '%s' "$co_line" | sed -E 's/<.*//; s/[[:space:]]+$//')
+              co_email=$(printf '%s' "$co_line" | sed -nE 's/.*<([^>]+)>.*/\1/p')
+              AI_TYPE=$(detect_ai_actor "$co_name" "$co_email") || true
+              [ -n "$AI_TYPE" ] && break
+            done <<< "$co_author_lines"
+          fi
         fi
       fi
 
+      # Cache the result for this commit
       if [ -n "$AI_TYPE" ]; then
+        COMMIT_AI_CACHE["$current_hash"]="$AI_TYPE"
         file_ai=$((file_ai + 1))
         file_breakdown["$AI_TYPE"]=$((${file_breakdown["$AI_TYPE"]:-0} + 1))
+      else
+        COMMIT_AI_CACHE["$current_hash"]="NONE"
       fi
     fi
-  done < <(git blame --line-porcelain "$file" 2>/dev/null | grep '^[a-f0-9]\{40\}')
+  done < <(git blame --line-porcelain "$file" 2>/dev/null)
 
   # Format breakdown as JSON-like string
   local breakdown_str=""
@@ -464,13 +496,41 @@ if ! $DEBUG; then
       git commit -m "$COMMIT_MESSAGE to ${PERCENT}% [skip vibe-badge]"
 
       if [ -n "${GITHUB_ACTIONS:-}" ]; then
+        # Determine the branch name to push to
+        PUSH_BRANCH="${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
+        echo "Pushing badge update to branch: $PUSH_BRANCH"
+
+        # Pull latest changes and rebase our badge commit on top
+        if ! git pull --rebase origin "$PUSH_BRANCH" 2>/dev/null; then
+          echo "Warning: Rebase failed, attempting to re-apply badge update..."
+          git rebase --abort 2>/dev/null || true
+          git reset --soft HEAD~1
+          git checkout -- "$README_PATH"
+          git pull origin "$PUSH_BRANCH" 2>/dev/null || true
+          # Re-apply the badge change on the updated branch
+          perl -0777 -pi -e '
+            my $content = $_;
+            my $badge_re = qr#\[!\[\d+%[ _][^\]]*Vibe[ _]Coded[^\]]*\]\(https://img\.shields\.io/badge/\d+%25[^)]*\)\]\([^)]*\)#s;
+            $content =~ s/$badge_re\s*//g;
+            $content =~ s/\n{3,}/\n\n/g;
+            if ($content =~ /^(#+ [^\n]+)\n/m) {
+              $content =~ s/^(#+ [^\n]+)\n/$1\n\n$ENV{NEW_BADGE}\n/m;
+            } else {
+              $content = "$ENV{NEW_BADGE}\n\n$content";
+            }
+            $_ = $content;
+          ' "$README_PATH"
+          git add "$README_PATH"
+          git commit -m "$COMMIT_MESSAGE to ${PERCENT}% [skip vibe-badge]"
+        fi
+
         if [ "$SKIP_ON_ERROR" = "true" ]; then
-          if ! git push origin HEAD 2>/dev/null; then
+          if ! git push origin "HEAD:$PUSH_BRANCH" 2>&1; then
             echo "Warning: Failed to push changes to remote."
             echo "Set SKIP_ON_ERROR=false to fail on push errors instead of skipping."
           fi
         else
-          git push origin HEAD
+          git push origin "HEAD:$PUSH_BRANCH"
         fi
       fi
     else
