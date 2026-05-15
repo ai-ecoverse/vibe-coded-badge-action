@@ -131,7 +131,7 @@ detect_ai_actor() {
     echo "Kimi"; return 0
   elif echo "$actor_name" | grep -iw 'goose' >/dev/null || echo "$actor_email" | grep -E 'goose@(example\.com|opensource\.block\.xyz)' >/dev/null; then
     echo "Goose"; return 0
-  elif echo "$actor_name" | grep -i 'grok' >/dev/null || echo "$actor_email" | grep -E 'grok@x\.ai' >/dev/null; then
+  elif echo "$actor_name" | grep -iw 'grok' >/dev/null || echo "$actor_email" | grep -E 'grok@x\.ai' >/dev/null; then
     echo "Grok"; return 0
   elif echo "$actor_name" | grep -i '\[bot\]' >/dev/null || echo "$actor_name" | grep -iE 'renovate|semantic-release' >/dev/null; then
     if echo "$actor_name" | grep -i 'renovate' >/dev/null; then
