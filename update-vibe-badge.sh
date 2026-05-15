@@ -27,7 +27,7 @@ declare -A AI_TYPE_LINES=(
   ["Claude"]=0 ["Cursor"]=0 ["Windsurf"]=0 ["Zed"]=0 ["OpenAI"]=0
   ["OpenCode"]=0 ["Terragon"]=0 ["Gemini"]=0 ["Qwen"]=0 ["Amp"]=0
   ["Droid"]=0 ["Copilot"]=0 ["Aider"]=0 ["Cline"]=0 ["Crush"]=0
-  ["Kimi"]=0 ["Goose"]=0 ["Bot"]=0 ["Renovate"]=0 ["Semantic"]=0 ["Jules"]=0
+  ["Kimi"]=0 ["Goose"]=0 ["Grok"]=0 ["Bot"]=0 ["Renovate"]=0 ["Semantic"]=0 ["Jules"]=0
 )
 
 # AI type to logo mapping
@@ -39,7 +39,7 @@ declare -A AI_LOGOS=(
   ["Gemini"]="google" ["Jules"]="google"
   ["Qwen"]="alibabacloud" ["Amp"]="sourcegraph"
   ["Droid"]="robot" ["Crush"]="robot"
-  ["Goose"]="block" ["Renovate"]="renovatebot" ["Semantic"]="semanticrelease"
+  ["Goose"]="block" ["Grok"]="xai" ["Renovate"]="renovatebot" ["Semantic"]="semanticrelease"
   ["Bot"]="githubactions"
 )
 
@@ -131,6 +131,8 @@ detect_ai_actor() {
     echo "Kimi"; return 0
   elif echo "$actor_name" | grep -iw 'goose' >/dev/null || echo "$actor_email" | grep -E 'goose@(example\.com|opensource\.block\.xyz)' >/dev/null; then
     echo "Goose"; return 0
+  elif echo "$actor_name" | grep -i 'grok' >/dev/null || echo "$actor_email" | grep -E 'grok@x\.ai' >/dev/null; then
+    echo "Grok"; return 0
   elif echo "$actor_name" | grep -i '\[bot\]' >/dev/null || echo "$actor_name" | grep -iE 'renovate|semantic-release' >/dev/null; then
     if echo "$actor_name" | grep -i 'renovate' >/dev/null; then
       echo "Renovate"; return 0

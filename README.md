@@ -19,7 +19,7 @@ Part of the **[AI Ecoverse](https://github.com/ai-ecoverse/.github)** - a compre
 
 ## Features
 
-- **Smart AI Detection**: Identifies commits from Claude, Cursor, Zed, Windsurf, OpenAI, Codex, Gemini, Jules, Qwen, Amp, Droid, GitHub Copilot, Aider, Cline, Crush, Kimi, Goose, and various bots
+- **Smart AI Detection**: Identifies commits from Claude, Cursor, Zed, Windsurf, OpenAI, Codex, Gemini, Jules, Qwen, Amp, Droid, GitHub Copilot, Aider, Cline, Crush, Kimi, Goose, Grok, and various bots
 - **Dynamic Logo Selection**: Automatically chooses the logo based on which AI tool contributed the most
 - **Flexible Configuration**: Customizable badge style, colors, text, and target file
 - **Debug Mode**: Detailed analysis of commit classification
