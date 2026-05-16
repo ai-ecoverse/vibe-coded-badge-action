@@ -19,7 +19,7 @@ Part of the **[AI Ecoverse](https://github.com/ai-ecoverse/.github)** - a compre
 
 ## Features
 
-- **Smart AI Detection**: Identifies commits from Claude, Cursor, Zed, Windsurf, OpenAI, Codex, Gemini, Jules, Qwen, Amp, Droid, GitHub Copilot, Aider, Cline, Crush, Kimi, Goose, Grok, and various bots
+- **Smart AI Detection**: Identifies commits from Claude, Cursor, Zed, Windsurf, OpenAI, Codex, Gemini, Jules, Qwen, Amp, Droid, GitHub Copilot, Aider, Cline, Crush, Kimi, Goose, Grok, Pi, and various bots
 - **Dynamic Logo Selection**: Automatically chooses the logo based on which AI tool contributed the most
 - **Flexible Configuration**: Customizable badge style, colors, text, and target file
 - **Debug Mode**: Detailed analysis of commit classification
@@ -109,6 +109,7 @@ The action identifies AI-generated code by analyzing git blame data:
    - Kimi (Moonshot AI)
    - Goose (Block)
    - Terragon
+   - Pi (earendil.works)
    - Various bot accounts
 3. **Line Filtering**: Filters out boilerplate lines (comments, empty lines, imports) for accuracy
 4. **File Type Support**: Analyzes source files across multiple programming languages
@@ -135,6 +136,7 @@ The badge automatically selects the appropriate logo based on which AI tool has 
 - **Crush** → `robot` logo
 - **Kimi** → `openai` logo
 - **Goose** → `block` logo
+- **Pi** → `robot` logo
 - **Renovate** → `renovatebot` logo
 - **Semantic Release** → `semanticrelease` logo
 - **Other Bots** → `githubactions` logo
